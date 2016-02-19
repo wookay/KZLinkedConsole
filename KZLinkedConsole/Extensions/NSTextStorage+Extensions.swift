@@ -280,7 +280,8 @@ final class KZLinkInjector {
         //
         // (If this gets any more complicated there will need to be a formal way to walk through multiple
         // patterns and check if each one matches.)
-        return try! NSRegularExpression(pattern: "([\\w\\+]+)\\.(\\w+)(\\([^)]*\\))?:(\\d+)", options: .CaseInsensitive)
+//        return try! NSRegularExpression(pattern: "([\\w\\+]+)\\.(\\w+)(\\([^)]*\\))?:(\\d+)", options: .CaseInsensitive)
+        return try! NSRegularExpression(pattern: "([\\w\\+]+)\\.(\\w+)(\\([^)]*\\))? #(\\d+)", options: .CaseInsensitive)
     }
 
     private static func withLock<T>(lock: NSLock, block: () -> T) -> T {
