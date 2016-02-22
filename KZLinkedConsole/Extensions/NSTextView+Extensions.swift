@@ -116,8 +116,7 @@ func kz_findFile(workspacePath : String, _ fileName : String) -> String? {
         searchPath = (searchPath as NSString).stringByDeletingLastPathComponent
         searchCount++
         let searchPathCount = searchPath.componentsSeparatedByString("/").count
-//        if searchPathCount <= 3 || searchCount >= 2 {
-        if searchPathCount <= 4 || searchCount >= 3 {
+        if searchPathCount <= 3 { //|| searchCount >= 2 {
             return nil
         }
     }
