@@ -7,21 +7,20 @@ import Foundation
 import AppKit
 
 extension NSTextView {
-    func kz_mouseDown(event: NSEvent) {
-        let pos = convertPoint(event.locationInWindow, fromView:nil)
-        let idx = characterIndexForInsertionAtPoint(pos)
+    func kz_mouseDown(_ event: NSEvent) {
+        let pos = convert(event.locationInWindow, from:nil)
+        let idx = characterIndexForInsertion(at: pos)
 
-        guard let expectedClass = NSClassFromString("IDEConsoleTextView")
-            where isKindOfClass(expectedClass) && attributedString().length > 1 && idx < attributedString().length else {
+        guard let expectedClass = NSClassFromString("IDEConsoleTextView"), isKind(of: expectedClass) && attributedString().length > 1 && idx < attributedString().length else {
                 kz_mouseDown(event)
             return
         }
         
-        let attr = attributedString().attributesAtIndex(idx, effectiveRange: nil)
+        let attr = attributedString().attributes(at: idx, effectiveRange: nil)
         
         guard let fileName = attr[KZLinkedConsole.Strings.linkedFileName] as? String,
             let lineNumber = attr[KZLinkedConsole.Strings.linkedLine] as? String,
-            let appDelegate = NSApplication.sharedApplication().delegate else {
+            let appDelegate = NSApplication.shared().delegate else {
                 kz_mouseDown(event)
                 return
         }
@@ -34,25 +33,25 @@ extension NSTextView {
             return
         }
         
-        if appDelegate.application!(NSApplication.sharedApplication(), openFile: filePath) {
-            dispatch_async(dispatch_get_main_queue()) {
+        if appDelegate.application!(NSApplication.shared(), openFile: filePath) {
+            DispatchQueue.main.async {
                 if  let textView = KZPluginHelper.editorTextView(inWindow: self.window),
-                    let line = Int(lineNumber) where line >= 1 {
+                    let line = Int(lineNumber), line >= 1 {
                         self.scrollTextView(textView, toLine:line)
                 }
             }
         }
     }
     
-    private func scrollTextView(textView: NSTextView, toLine line: Int) {
+    fileprivate func scrollTextView(_ textView: NSTextView, toLine line: Int) {
         guard let text = (textView.string as NSString?) else {
             return
         }
         
         var currentLine = 1
-        var index = 0
-        for (; index < text.length; currentLine++) {
-            let lineRange = text.lineRangeForRange(NSMakeRange(index, 0))
+        for var index in 0..<text.length {
+            currentLine += 1
+            let lineRange = text.lineRange(for: NSMakeRange(index, 0))
             index = NSMaxRange(lineRange)
             
             if currentLine == line {
@@ -93,10 +92,10 @@ var kz_filePathCache = [String : [String : String]]()
  expensive also.
 
  */
-func kz_findFile(workspacePath : String, _ fileName : String) -> String? {
+func kz_findFile(_ workspacePath : String, _ fileName : String) -> String? {
     var thisWorkspaceCache = kz_filePathCache[workspacePath] ?? [:]
     if let result = thisWorkspaceCache[fileName] {
-        if NSFileManager.defaultManager().fileExistsAtPath(result) {
+        if FileManager.default.fileExists(atPath: result) {
             return result
         }
     }
@@ -113,16 +112,16 @@ func kz_findFile(workspacePath : String, _ fileName : String) -> String? {
         }
 
         prevSearchPath = searchPath
-        searchPath = (searchPath as NSString).stringByDeletingLastPathComponent
-        searchCount++
-        let searchPathCount = searchPath.componentsSeparatedByString("/").count
+        searchPath = (searchPath as NSString).deletingLastPathComponent
+        searchCount += 1
+        let searchPathCount = searchPath.components(separatedBy: "/").count
         if searchPathCount <= 3 || searchCount >= 2 {
             return nil
         }
     }
 }
 
-func kz_findFile(fileName : String, _ searchPath : String, _ prevSearchPath : String?) -> String? {
+func kz_findFile(_ fileName : String, _ searchPath : String, _ prevSearchPath : String?) -> String? {
     let args = (prevSearchPath == nil ?
         ["-L", searchPath, "-name", fileName, "-print", "-quit"] :
         ["-L", searchPath, "-name", prevSearchPath!, "-prune", "-o", "-name", fileName, "-print", "-quit"])

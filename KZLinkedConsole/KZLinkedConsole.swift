@@ -16,32 +16,32 @@ class KZLinkedConsole: NSObject {
         static let linkedLine = "KZLinkedLine"
     }
 
-    private var bundle: NSBundle
-    private let center = NSNotificationCenter.defaultCenter()
+    fileprivate var bundle: Bundle
+    fileprivate let center = NotificationCenter.default
 
     override static func initialize() {
         swizzleMethods()
     }
 
-    init(bundle: NSBundle) {
+    init(bundle: Bundle) {
         self.bundle = bundle
 
         super.init()
-        center.addObserver(self, selector: "didChange:", name: "IDEControlGroupDidChangeNotificationName", object: nil)
+        center.addObserver(self, selector: NSSelectorFromString("didChange:"), name: NSNotification.Name(rawValue: "IDEControlGroupDidChangeNotificationName"), object: nil)
     }
 
     deinit {
         center.removeObserver(self)
     }
 
-    func didChange(notification: NSNotification) {
+    func didChange(_ notification: Notification) {
         guard let consoleTextView = KZPluginHelper.consoleTextView(),
-        let textStorage = consoleTextView.valueForKey("textStorage") as? NSTextStorage else {
+        let textStorage = consoleTextView.value(forKey: "textStorage") as? NSTextStorage else {
             return
         }
         consoleTextView.linkTextAttributes = [
-            NSCursorAttributeName: NSCursor.pointingHandCursor(),
-            NSUnderlineStyleAttributeName: NSUnderlineStyle.StyleSingle.rawValue
+            NSCursorAttributeName: NSCursor.pointingHand(),
+            NSUnderlineStyleAttributeName: NSUnderlineStyle.styleSingle.rawValue
         ]
         textStorage.kz_isUsedInXcodeConsole = true
     }
@@ -53,8 +53,8 @@ class KZLinkedConsole: NSObject {
         }
         
         do {
-            try storageClass.jr_swizzleMethod("fixAttributesInRange:", withMethod: "kz_fixAttributesInRange:")
-            try textViewClass.jr_swizzleMethod("mouseDown:", withMethod: "kz_mouseDown:")
+            try storageClass.jr_swizzleMethod(NSSelectorFromString("fixAttributesInRange:"), withMethod: NSSelectorFromString("kz_fixAttributesInRange:"))
+            try textViewClass.jr_swizzleMethod(NSSelectorFromString("mouseDown:"), withMethod: NSSelectorFromString("kz_mouseDown:"))
         }
         catch {
             Swift.print("Swizzling failed")
