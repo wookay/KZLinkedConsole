@@ -47,19 +47,12 @@ extension NSTextView {
         guard let text = (textView.string as NSString?) else {
             return
         }
-        
-        var currentLine = 1
-        for var index in 0..<text.length {
-            currentLine += 1
-            let lineRange = text.lineRange(for: NSMakeRange(index, 0))
-            index = NSMaxRange(lineRange)
-            
-            if currentLine == line {
-                textView.scrollRangeToVisible(lineRange)
-                textView.setSelectedRange(lineRange)
-                break
-            }
+        if 1 == line {
+            return
         }
+        let lineRange = NSMakeRange(text.components(separatedBy: "\n")[0...line-1].joined(separator: "\n").characters.count, 0)
+        textView.scrollRangeToVisible(lineRange)
+        textView.setSelectedRange(lineRange)
     }
 }
 
